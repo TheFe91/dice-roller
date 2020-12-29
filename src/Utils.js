@@ -35,13 +35,13 @@ The available dice formats are:
 \`d12\` - A \`12-faces\` dice: results go \`from 1 to 12\`
 \`d20\` - A \`20-faces\` dice: results go \`from 1 to 20\`
 
- The string is obtained by writing a series of \`<number of dices><type of dice>\` separated by a \`+\` sign.
- So for example if I want to roll \`3 dices of 4 faces and 2 dices of 8 faces\`, my formula will be: \`3d4+2d8\`.
+The string is obtained by writing a series of \`<number of dices><type of dice>\` separated by a \`+\` sign.
+So for example if I want to roll \`3 dices of 4 faces and 2 dices of 8 faces\`, my formula will be: \`3d4+2d8\`.
  
- There's no limitation on the number of dices you can roll.
- You can add also one or more \`extra values\` that will be sum on the resulting roll: to do this just add a plain integer number:
- \`3d4+2d8+5\` will result in a number between 10 and 33 (because the minimum with 3d4 is 3, the minimum with 2d8 is 2, so \`3+2+5=10\`, the maximum is \`12+16+5=33\`).
- Once again there's no limitation on the number of extra values you can put: for example \`3d4+5+8d10+2+1d20+3\` is a valid formula.
+There's no limitation on the number of dices you can roll.
+You can add also one or more \`extra values\` that will be sum on the resulting roll: to do this just add a plain integer number:
+\`3d4+2d8+5\` will result in a number between 10 and 33 (because the minimum with 3d4 is 3, the minimum with 2d8 is 2, so \`3+2+5=10\`, the maximum is \`12+16+5=33\`).
+Once again there's no limitation on the number of extra values you can put: for example \`3d4+5+8d10+2+1d20+3\` is a valid formula.
 
 The bot will only check if the syntax of the formula is correct. However, the wrong type of dices are simply ignored, so for example:
 \`3d4+4d8+15k\` gives error
