@@ -1,5 +1,5 @@
 import fs from 'fs';
-import Discord, { MessageAttachment } from 'discord.js';
+import { MessageAttachment } from 'discord.js';
 import mergeImg from 'merge-img';
 
 const getDateTime = (withDate, withTime, timeWithSeconds = false) => {
@@ -26,10 +26,12 @@ To roll a dice, type:
 \`!roll <formula>\` to roll a set of 1 or more dices (excluded the percentual dice)
 \`!roll% <type>\` to roll a percentual dice
 
+To flip one or more coins type:
+\`!flipcoin <number of coins>\`
+
 The formula is a string representing how much and what type of dice(s) you want to roll.
 
 The available dice formats are:
-\`d2\` - Basically a coin flip, giving \`head\` or \`tail\` as a result. \`head\` is \`1\`, \`tail\` is \`0\`
 \`d4\` - A \`4-faces\` dice: results go \`from 1 to 4\`
 \`d6\` - A \`6-faces\` dice: results go \`from 1 to 6\`
 \`d8\` - A \`8-faces\` dice: results go \`from 1 to 8\`
@@ -45,11 +47,11 @@ You can add also one or more \`extra values\` that will be sum on the resulting 
 \`3d4+2d8+5\` will result in a number between 10 and 33 (because the minimum with 3d4 is 3, the minimum with 2d8 is 2, so \`3+2+5=10\`, the maximum is \`12+16+5=33\`).
 Once again there's no limitation on the number of extra values you can put: for example \`3d4+5+8d10+2+1d20+3\` is a valid formula.
 
-The bot will only check if the syntax of the formula is correct. However, the wrong type of dices are simply ignored, so for example:
-\`3d4+4d8+15k\` gives error
-\`3d4+4d8+15d3\` gives a result between \`7 and 44\`, because \`d3\` is not a valid dice, so it is ignored
+The bot will check if the syntax of the formula is correct, giving an error if it isn't. Examples of errors are:
+\`3d4+4d8+15k\`  <== Invalid string (15k)
+\`3d4+4d8+15d3\` <== Invalid dice type (d3)
 
-To roll a percentual dice, use, as <type> "rounded" to get a dozen integer \`from 00 to 90\`, "unrounded" to get an integer \`from 1 to 99\`
+To roll a percentual dice, use, as <type>, "rounded" to get a dozen integer \`from 00 to 90\`, "unrounded" to get an integer \`from 1 to 99\`
     `,
   );
 };
