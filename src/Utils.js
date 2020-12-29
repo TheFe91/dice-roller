@@ -23,7 +23,7 @@ const printActions = (channel) => {
   channel.send(
     `
 To roll a dice type:
-\`!roll <formula>\` - Rolls a dice with the given formula
+\`!roll <formula>\`
 The formula is a string representing how much and what type of dice(s) you want to roll.
 
 The available dice formats are:
