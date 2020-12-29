@@ -112,3 +112,5 @@ tmp/
 # Mac OS
 .DS_Store
 src/assets/.DS_Store
+
+# Logs
