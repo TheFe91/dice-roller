@@ -104,7 +104,7 @@ const rollPerc = (channel, type) => {
   if (type === 'rounded') {
     const result = getRandomInt(0, 9) * 10;
     channel.send(
-      `Your result is ${result}`,
+      `Your result is ${result}%`,
       new MessageAttachment(`./src/assets/d%/${result}.png`),
     );
   } else {
@@ -114,7 +114,7 @@ const rollPerc = (channel, type) => {
     const images = [`./src/assets/d%/${dozens}.png`, `./src/assets/d10/${units}.png`];
     mergeImg(images).then((img) => img.write('./tmp.png', () => {
       channel.send(
-        `Your result is ${total}`,
+        `Your result is ${total}%`,
         new MessageAttachment('./tmp.png'),
       ).then(() => unlinkTmpImg(channel));
     }));
