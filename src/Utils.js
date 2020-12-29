@@ -71,17 +71,15 @@ const rollDices = (channel, formula) => {
   const allowedDices = ['2', '4', '6', '8', '10', '12', '20'];
   const rolls = parts.filter((part) => part.includes('d') && allowedDices.includes(part.split('d')[1]));
   const extras = parts.filter((part) => !part.includes('d')).reduce((acc, el) => acc + parseInt(el, 10), 0);
-  let total = 0;
-  const attachments = [];
-  rolls.forEach((throwing) => {
-    const nod = throwing.split('d')[0]; // nod: number of dice
-    const tod = throwing.split('d')[1]; // tod: type of dice
-    for (let i = 0; i < nod; i += 1) {
+  const { attachments, total } = rolls.reduce((acc, el) => {
+    const nod = el.split('d')[0]; // nod: number of dice
+    const tod = el.split('d')[1]; // tod: type of dice
+
+    return [...Array(nod)].reduce(({ total: t, attachments: a }) => {
       const singleRes = tod !== '2' ? getRandomInt(1, tod) : getRandomInt(0, 1);
-      attachments.push(`./src/assets/d${tod}/${singleRes}.png`);
-      total += singleRes;
-    }
-  });
+      return { total: t + singleRes, attachments: [...a, `./src/assets/d${tod}/${singleRes}.png`] };
+    }, acc);
+  }, { attachments: [], total: 0 });
 
   const grandTotal = total + extras;
   mergeImg(attachments).then((img) => img.write('./tmp.png', () => {
