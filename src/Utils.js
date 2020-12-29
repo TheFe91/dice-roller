@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { MessageAttachment } from 'discord.js';
+import Discord, { MessageAttachment } from 'discord.js';
 import mergeImg from 'merge-img';
 
 const getDateTime = (withDate, withTime, timeWithSeconds = false) => {
@@ -61,6 +61,25 @@ const unlinkTmpImg = (channel) => fs.unlink('./tmp.png', ((err) => {
   }
 }));
 
+const flipCoins = (channel, noc) => {
+  if (Number.isNaN(Number(noc))) {
+    channel.send('The number of coin is invalid!');
+    return;
+  }
+
+  const attachments = [...Array(Number(noc))].reduce((acc) => {
+    const singleRes = getRandomInt(0, 1);
+    return [...acc, `./src/assets/d2/${singleRes}.png`];
+  }, []);
+
+  mergeImg(attachments).then((img) => img.write('./tmp.png', () => {
+    channel.send(
+      Number(noc) > 1 ? 'Here are your coins:' : 'Here is your coin:',
+      new MessageAttachment('./tmp.png'),
+    ).then(() => unlinkTmpImg(channel));
+  }));
+};
+
 const rollDices = (channel, formula) => {
   if (!(formula.match(/^[0-9+d%]*$/))) {
     channel.send('Your formula is invalid! Please insert only numbers (0-9) separated by +');
@@ -68,15 +87,22 @@ const rollDices = (channel, formula) => {
   }
 
   const parts = formula.split('+');
-  const allowedDices = ['2', '4', '6', '8', '10', '12', '20'];
-  const rolls = parts.filter((part) => part.includes('d') && allowedDices.includes(part.split('d')[1]));
-  const extras = parts.filter((part) => !part.includes('d')).reduce((acc, el) => acc + parseInt(el, 10), 0);
+  const allowedDices = ['4', '6', '8', '10', '12', '20'];
+  const rolls = parts.filter((part) => part.includes('d'));
+  const notAllowed = rolls.filter((part) => !allowedDices.includes(part.split('d')[1]));
+  if (notAllowed.length > 0) {
+    channel.send('Your formula is invalid! Please insert only valid dice types (4-6-8-10-12-20)');
+    return;
+  }
+
+  const extras = parts.filter((part) => !part.includes('d')).reduce((acc, el) => acc + Number(el), 0);
+
   const { attachments, total } = rolls.reduce((acc, el) => {
     const nod = el.split('d')[0]; // nod: number of dice
     const tod = el.split('d')[1]; // tod: type of dice
 
-    return [...Array(nod)].reduce(({ total: t, attachments: a }) => {
-      const singleRes = tod !== '2' ? getRandomInt(1, tod) : getRandomInt(0, 1);
+    return [...Array(Number(nod))].reduce(({ total: t, attachments: a }) => {
+      const singleRes = getRandomInt(1, tod);
       return { total: t + singleRes, attachments: [...a, `./src/assets/d${tod}/${singleRes}.png`] };
     }, acc);
   }, { attachments: [], total: 0 });
@@ -84,12 +110,15 @@ const rollDices = (channel, formula) => {
   const grandTotal = total + extras;
   mergeImg(attachments).then((img) => img.write('./tmp.png', () => {
     channel.send('Here are your dices:');
-    channel.send('', new MessageAttachment('./tmp.png'));
-    if (extras > 0) {
-      channel.send(`Your extra is ${extras}, so your total is ${grandTotal}`).then(() => unlinkTmpImg(channel));
-    } else {
-      channel.send(`Your total is ${grandTotal}`).then(() => unlinkTmpImg(channel));
-    }
+    channel.send('', new MessageAttachment('./tmp.png')).then(() => {
+      if (extras > 0) {
+        channel.send(
+          `Your **extra** is ${extras}, so your **total** is **${grandTotal}**`,
+        ).then(() => unlinkTmpImg(channel));
+      } else {
+        channel.send(`Your **total** is **${grandTotal}**`).then(() => unlinkTmpImg(channel));
+      }
+    });
   }));
 };
 
@@ -125,6 +154,9 @@ const dispatchBotCommand = (channel, content) => {
   switch (command) {
     case '!help':
       printActions(channel);
+      break;
+    case '!flipcoins':
+      flipCoins(channel, parts[1]);
       break;
     case '!roll':
       rollDices(channel, parts[1]);
