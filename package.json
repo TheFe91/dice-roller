@@ -4,7 +4,7 @@
   "description": "A Discord bot to roll dices and display results with fancy dice images",
   "main": "index.js",
   "scripts": {
-    "start": "node -r dotenv/config index.js",
+    "start": "yarn && node -r dotenv/config index.js",
     "lint": "eslint"
   },
   "repository": {
