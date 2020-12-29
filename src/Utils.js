@@ -26,10 +26,12 @@ To roll a dice, type:
 \`!roll <formula>\` to roll a set of 1 or more dices (excluded the percentual dice)
 \`!roll% <type>\` to roll a percentual dice
 
+To flip one or more coins type:
+\`!flipcoin <number of coins>\`
+
 The formula is a string representing how much and what type of dice(s) you want to roll.
 
 The available dice formats are:
-\`d2\` - Basically a coin flip, giving \`head\` or \`tail\` as a result. \`head\` is \`1\`, \`tail\` is \`0\`
 \`d4\` - A \`4-faces\` dice: results go \`from 1 to 4\`
 \`d6\` - A \`6-faces\` dice: results go \`from 1 to 6\`
 \`d8\` - A \`8-faces\` dice: results go \`from 1 to 8\`
@@ -45,11 +47,11 @@ You can add also one or more \`extra values\` that will be sum on the resulting 
 \`3d4+2d8+5\` will result in a number between 10 and 33 (because the minimum with 3d4 is 3, the minimum with 2d8 is 2, so \`3+2+5=10\`, the maximum is \`12+16+5=33\`).
 Once again there's no limitation on the number of extra values you can put: for example \`3d4+5+8d10+2+1d20+3\` is a valid formula.
 
-The bot will only check if the syntax of the formula is correct. However, the wrong type of dices are simply ignored, so for example:
-\`3d4+4d8+15k\` gives error
-\`3d4+4d8+15d3\` gives a result between \`7 and 44\`, because \`d3\` is not a valid dice, so it is ignored
+The bot will check if the syntax of the formula is correct, giving an error if it isn't. Examples of errors are:
+\`3d4+4d8+15k\`  <== Invalid string (15k)
+\`3d4+4d8+15d3\` <== Invalid dice type (d3)
 
-To roll a percentual dice, use, as <type> "rounded" to get a dozen integer \`from 00 to 90\`, "unrounded" to get an integer \`from 1 to 99\`
+To roll a percentual dice, use, as <type>, "rounded" to get a dozen integer \`from 00 to 90\`, "unrounded" to get an integer \`from 1 to 99\`
     `,
   );
 };
@@ -61,6 +63,25 @@ const unlinkTmpImg = (channel) => fs.unlink('./tmp.png', ((err) => {
   }
 }));
 
+const flipCoins = (channel, noc) => {
+  if (Number.isNaN(Number(noc))) {
+    channel.send('The number of coin is invalid!');
+    return;
+  }
+
+  const attachments = [...Array(Number(noc))].reduce((acc) => {
+    const singleRes = getRandomInt(0, 1);
+    return [...acc, `./src/assets/d2/${singleRes}.png`];
+  }, []);
+
+  mergeImg(attachments).then((img) => img.write('./tmp.png', () => {
+    channel.send(
+      Number(noc) > 1 ? 'Here are your coins:' : 'Here is your coin:',
+      new MessageAttachment('./tmp.png'),
+    ).then(() => unlinkTmpImg(channel));
+  }));
+};
+
 const rollDices = (channel, formula) => {
   if (!(formula.match(/^[0-9+d%]*$/))) {
     channel.send('Your formula is invalid! Please insert only numbers (0-9) separated by +');
@@ -68,30 +89,38 @@ const rollDices = (channel, formula) => {
   }
 
   const parts = formula.split('+');
-  const allowedDices = ['2', '4', '6', '8', '10', '12', '20'];
-  const rolls = parts.filter((part) => part.includes('d') && allowedDices.includes(part.split('d')[1]));
-  const extras = parts.filter((part) => !part.includes('d')).reduce((acc, el) => acc + parseInt(el, 10), 0);
-  let total = 0;
-  const attachments = [];
-  rolls.forEach((throwing) => {
-    const nod = throwing.split('d')[0]; // nod: number of dice
-    const tod = throwing.split('d')[1]; // tod: type of dice
-    for (let i = 0; i < nod; i += 1) {
-      const singleRes = tod !== '2' ? getRandomInt(1, tod) : getRandomInt(0, 1);
-      attachments.push(`./src/assets/d${tod}/${singleRes}.png`);
-      total += singleRes;
-    }
-  });
+  const allowedDices = ['4', '6', '8', '10', '12', '20'];
+  const rolls = parts.filter((part) => part.includes('d'));
+  const notAllowed = rolls.filter((part) => !allowedDices.includes(part.split('d')[1]));
+  if (notAllowed.length > 0) {
+    channel.send('Your formula is invalid! Please insert only valid dice types (4-6-8-10-12-20)');
+    return;
+  }
+
+  const extras = parts.filter((part) => !part.includes('d')).reduce((acc, el) => acc + Number(el), 0);
+
+  const { attachments, total } = rolls.reduce((acc, el) => {
+    const nod = el.split('d')[0]; // nod: number of dice
+    const tod = el.split('d')[1]; // tod: type of dice
+
+    return [...Array(Number(nod))].reduce(({ total: t, attachments: a }) => {
+      const singleRes = getRandomInt(1, tod);
+      return { total: t + singleRes, attachments: [...a, `./src/assets/d${tod}/${singleRes}.png`] };
+    }, acc);
+  }, { attachments: [], total: 0 });
 
   const grandTotal = total + extras;
   mergeImg(attachments).then((img) => img.write('./tmp.png', () => {
     channel.send('Here are your dices:');
-    channel.send('', new MessageAttachment('./tmp.png'));
-    if (extras > 0) {
-      channel.send(`Your extra is ${extras}, so your total is ${grandTotal}`).then(() => unlinkTmpImg(channel));
-    } else {
-      channel.send(`Your total is ${grandTotal}`).then(() => unlinkTmpImg(channel));
-    }
+    channel.send('', new MessageAttachment('./tmp.png')).then(() => {
+      if (extras > 0) {
+        channel.send(
+          `Your **extra** is ${extras}, so your **total** is **${grandTotal}**`,
+        ).then(() => unlinkTmpImg(channel));
+      } else {
+        channel.send(`Your **total** is **${grandTotal}**`).then(() => unlinkTmpImg(channel));
+      }
+    });
   }));
 };
 
@@ -127,6 +156,9 @@ const dispatchBotCommand = (channel, content) => {
   switch (command) {
     case '!help':
       printActions(channel);
+      break;
+    case '!flipcoins':
+      flipCoins(channel, parts[1]);
       break;
     case '!roll':
       rollDices(channel, parts[1]);
