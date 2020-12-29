@@ -37,7 +37,7 @@ The bot will only check if the syntax of the formula is correct. However, the wr
 Issues are welcome, PRs even more! Feel free to contribute to the project if you want to, and don't forget to add your name under the collaborators under here!
 
 ## Credits
-Alessandro Defendenti (Rollercoders Team): idea and coding
-Tommaso Misani: dices graphics
+Alessandro Defendenti (Rollercoders Team): idea and coding<br>
+Tommaso Misani: dices graphics<br>
 
 [here]: https://discord.com/oauth2/authorize?client_id=792697648150872064&scope=bot
