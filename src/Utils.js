@@ -22,8 +22,10 @@ const log = (message) => console.log(`${getDateTime(true, true)} - ${message}`);
 const printActions = (channel) => {
   channel.send(
     `
-To roll a dice type:
-\`!roll <formula>\`
+To roll a dice, type:
+\`!roll <formula>\` to roll a set of 1 or more dices (excluded the percentual dice)
+\`!roll% <type>\` to roll a percentual dice
+
 The formula is a string representing how much and what type of dice(s) you want to roll.
 
 The available dice formats are:
@@ -45,7 +47,9 @@ Once again there's no limitation on the number of extra values you can put: for 
 
 The bot will only check if the syntax of the formula is correct. However, the wrong type of dices are simply ignored, so for example:
 \`3d4+4d8+15k\` gives error
-\`3d4+4d8+15d3\` gives a result between \`7 and 44\`, because \`d3\` is not a valid dice, so it is ignored 
+\`3d4+4d8+15d3\` gives a result between \`7 and 44\`, because \`d3\` is not a valid dice, so it is ignored
+
+To roll a percentual dice, use, as <type> "rounded" to get a dozen integer \`from 00 to 90\`, "unrounded" to get an integer \`from 1 to 99\`
     `,
   );
 };
@@ -57,8 +61,8 @@ const unlinkTmpImg = (channel) => fs.unlink('./tmp.png', ((err) => {
   }
 }));
 
-const rollDice = (channel, formula) => {
-  if (!(formula.match(/^[0-9+d]*$/))) {
+const rollDices = (channel, formula) => {
+  if (!(formula.match(/^[0-9+d%]*$/))) {
     channel.send('Your formula is invalid! Please insert only numbers (0-9) separated by +');
     return;
   }
@@ -91,6 +95,32 @@ const rollDice = (channel, formula) => {
   }));
 };
 
+const rollPerc = (channel, type) => {
+  if (type !== 'rounded' && type !== 'unrounded') {
+    channel.send('The type is invalid! Please enter "rounded" or "unrounded"');
+    return;
+  }
+
+  if (type === 'rounded') {
+    const result = getRandomInt(0, 9) * 10;
+    channel.send(
+      `Your result is ${result}`,
+      new MessageAttachment(`./src/assets/d%/${result}.png`),
+    );
+  } else {
+    const units = getRandomInt(0, 9);
+    const dozens = getRandomInt(0, 9) * 10;
+    const total = dozens + units;
+    const images = [`./src/assets/d%/${dozens}.png`, `./src/assets/d10/${units}.png`];
+    mergeImg(images).then((img) => img.write('./tmp.png', () => {
+      channel.send(
+        `Your result is ${total}`,
+        new MessageAttachment('./tmp.png'),
+      ).then(() => unlinkTmpImg(channel));
+    }));
+  }
+};
+
 const dispatchBotCommand = (channel, content) => {
   const parts = content.split(' ');
   const command = parts[0];
@@ -99,7 +129,10 @@ const dispatchBotCommand = (channel, content) => {
       printActions(channel);
       break;
     case '!roll':
-      rollDice(channel, parts[1]);
+      rollDices(channel, parts[1]);
+      break;
+    case '!roll%':
+      rollPerc(channel, parts[1]);
       break;
     default:
       break;
