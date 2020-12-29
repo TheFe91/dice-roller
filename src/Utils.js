@@ -77,7 +77,7 @@ const rollDices = (channel, formula) => {
     const nod = throwing.split('d')[0]; // nod: number of dice
     const tod = throwing.split('d')[1]; // tod: type of dice
     for (let i = 0; i < nod; i += 1) {
-      const singleRes = getRandomInt(1, tod);
+      const singleRes = tod !== '2' ? getRandomInt(1, tod) : getRandomInt(0, 1);
       attachments.push(`./src/assets/d${tod}/${singleRes}.png`);
       total += singleRes;
     }
