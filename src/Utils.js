@@ -1,3 +1,5 @@
+/* eslint-disable max-len */
+
 import fs from 'fs';
 import { MessageAttachment } from 'discord.js';
 import mergeImg from 'merge-img';
@@ -171,15 +173,24 @@ const dispatchBotCommand = (channel, content) => {
   }
 };
 
+const removeMentions = (message) => {
+  const { mentions: { users } } = message;
+  const mentions = Array.from(users.keys());
+
+  let content = message.content.toLowerCase().trim();
+
+  mentions.forEach((mention) => {
+    content = content.replaceAll(`<@!${mention}>`, '');
+  });
+
+  return content.trim();
+};
+
 const incomingMessageCallback = (message) => {
-  if (message.author.bot) {
-    return;
-  }
-
   const { channel } = message;
-  const content = message.content.toLowerCase().trim();
+  const cleanedContent = removeMentions(message);
 
-  dispatchBotCommand(channel, content);
+  dispatchBotCommand(channel, cleanedContent);
 };
 
 export {
