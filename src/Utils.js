@@ -180,7 +180,7 @@ const removeMentions = (message) => {
   let content = message.content.toLowerCase().trim();
 
   mentions.forEach((mention) => {
-    content = content.replaceAll(`<@!${mention}>`, '');
+    content = content.replace(`<@!${mention}>`, '');
   });
 
   return content.trim();
