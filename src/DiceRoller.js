@@ -11,10 +11,13 @@ bot.on('ready', () => {
 });
 
 bot.on('message', (message) => {
-  const { channel: { guild: isGuild } } = message;
+  const { author: { id: authorId, bot: isBot, username }, content, channel: { guild: isGuild } } = message;
+
+  if (bot.user.id === authorId) {
+    return;
+  }
 
   if (!isGuild) {
-    const { author: { bot: isBot, username }, content } = message;
     if (!isBot) {
       log(`${username} says: ${content.toLowerCase().trim()}`);
     }

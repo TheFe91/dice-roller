@@ -169,6 +169,7 @@ const dispatchBotCommand = (channel, content) => {
       rollPerc(channel, parts[1]);
       break;
     default:
+      channel.send(`I'm sorry, but "**${command}**" is an ***undefined*** command. Please, try again`);
       break;
   }
 };
